@@ -1,6 +1,10 @@
 package Assignment2;
 
+import java.rmi.AlreadyBoundException;
 import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
 public class Component implements Component_RMI {
 
@@ -15,6 +19,14 @@ public class Component implements Component_RMI {
         this.otherComponentIds = otherComponentIds;
         this.hasToken = hasToken;
         this.token = new Token(processesAmount);
+
+        // Bind the Component to the registry
+        try {
+            Registry registry = LocateRegistry.getRegistry();
+            registry.bind(Integer.toString(componentId), this);
+        } catch (RemoteException | AlreadyBoundException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
