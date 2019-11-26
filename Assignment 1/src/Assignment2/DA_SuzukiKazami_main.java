@@ -22,9 +22,7 @@ public class DA_SuzukiKazami_main {
             for (int i = 0; i < processesAmount; i++) {
                     Component c = new Component(i, otherComponentIds, i == 0, processesAmount);
                     threads[i] = new Thread(new Process(c));
-                    threads[i].start();
             }
-
 
 
 
