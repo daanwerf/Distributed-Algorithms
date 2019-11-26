@@ -5,27 +5,35 @@ import java.util.Arrays;
 import java.util.Queue;
 
 public class Token {
-    private int[] LN;
-    private Queue<Integer> queue;
+    private int[] sequenceNumberList;
+    private Queue<Integer> componentOrder;
 
     public Token(int components) {
-        this.LN = new int[components];
-        this.queue = new ArrayDeque<>(components);
+        this.sequenceNumberList = new int[components];
+        this.componentOrder = new ArrayDeque<>(components);
     }
 
-    public int[] getLN() {
-        return LN;
+    public void updateSequenceNumberList(int index, int newValue) {
+        sequenceNumberList[index] = newValue;
     }
 
-    public Queue<Integer> getQueue() {
-        return queue;
+    public int getSequenceNumber(int index) {
+        return sequenceNumberList[index];
+    }
+
+    public void addComponentToQueue(int componentId) {
+        componentOrder.add(componentId);
+    }
+
+    public int getNextComponent() {
+        return componentOrder.poll();
     }
 
     @Override
     public String toString() {
         return "Token{" +
-                "LN=" + Arrays.toString(LN) +
-                ", queue=" + queue +
+                "sequenceNumberList=" + Arrays.toString(sequenceNumberList) +
+                ", componentOrder=" + componentOrder +
                 '}';
     }
 }
