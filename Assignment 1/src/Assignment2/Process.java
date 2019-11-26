@@ -1,4 +1,7 @@
 package Assignment2;
 
-public class Process {
+public class Process implements Runnable {
+    public void run() {
+        
+    }
 }

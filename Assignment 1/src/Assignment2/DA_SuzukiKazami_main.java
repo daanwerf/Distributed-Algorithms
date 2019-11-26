@@ -10,7 +10,10 @@ public class DA_SuzukiKazami_main {
         try {
             java.rmi.registry.LocateRegistry.createRegistry((1099));
 
-            
+            for (int i = 0; i < processes; i++) {
+                Component c = new Component(Integer.toString(i));
+            }
+
 
         } catch (RemoteException e) {
             e.printStackTrace();
