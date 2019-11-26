@@ -9,7 +9,13 @@ public class Process implements Runnable {
 
     public void run() {
         while (true) {
-            
+            try {
+                Thread.sleep((int) Math.random() * 2500);
+                component.broadcastMessage();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 }
