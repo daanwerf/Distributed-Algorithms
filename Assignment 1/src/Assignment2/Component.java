@@ -30,12 +30,22 @@ public class Component implements Component_RMI {
     }
 
     @Override
-    public void tokenReceive(Token token) {
+    public void receiveToken(Token token) {
 
     }
 
     @Override
-    public void requestReceive(int senderId, int sequenceNumber) {
+    public void sendToken(int receiverId) {
+
+    }
+
+    @Override
+    public void receiveMessage(int senderId, int sequenceNumber) {
+
+    }
+
+    @Override
+    public void broadcastMessage() {
 
     }
 }

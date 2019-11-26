@@ -17,13 +17,10 @@ public class DA_SuzukiKazami_main {
                 otherComponentIds[i] = i;
             }
 
-            // Create all components, component 0 gets the token
+            // Create all components and bind them to threads, component 0 gets the token
             for (int i = 0; i < processesAmount; i++) {
-                if (i == 0) {
-                    Component c = new Component(i, otherComponentIds, true, processesAmount);
-                } else {
-                    Component c = new Component(i, otherComponentIds, false, processesAmount);
-                }
+                    Component c = new Component(i, otherComponentIds, i == 0, processesAmount);
+                    threads[i] = new Thread(new Process(c));
             }
 
 
