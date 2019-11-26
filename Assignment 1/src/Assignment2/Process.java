@@ -1,5 +1,9 @@
 package Assignment2;
 
+import java.net.MalformedURLException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+
 public class Process implements Runnable {
     private Component component;
 
@@ -10,9 +14,9 @@ public class Process implements Runnable {
     public void run() {
         while (true) {
             try {
-                Thread.sleep((int) Math.random() * 2500);
+                Thread.sleep((int) (Math.random() * 2500));
                 component.broadcastMessage();
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | RemoteException | NotBoundException | MalformedURLException e) {
                 e.printStackTrace();
             }
 

@@ -25,6 +25,7 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         this.componentSequenceNumberList = new int[processesAmount];
 
         // Bind the Component to the registry
+        // TODO: Fix naming, doesn't work like this
         try {
             Registry registry = LocateRegistry.getRegistry();
             registry.bind(Integer.toString(componentId), this);
@@ -58,8 +59,15 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         this.componentSequenceNumberList[componentId]++;
 
         for(int i = 0; i < processesAmount; i++) {
+            // TODO: Fix naming, doesn't work like this
             Component_RMI receiver =  (Component_RMI) Naming.lookup(Integer.toString(i));
+            System.out.println(receiver.toString());
             receiver.receiveMessage(componentId, componentSequenceNumberList[componentId]);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "componentId " + componentId + " hasToken: " + hasToken;
     }
 }
