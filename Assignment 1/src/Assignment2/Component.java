@@ -47,6 +47,6 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
 
     @Override
     public void broadcastMessage() {
-
+        System.out.println("Component " + Integer.toString(componentId) + " says hi");
     }
 }
