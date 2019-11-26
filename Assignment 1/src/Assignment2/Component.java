@@ -5,14 +5,14 @@ import java.rmi.Remote;
 public class Component implements Component_RMI {
 
     private int componentId;
-    private String[] ipAddresses;
+    private int[] otherComponentIds;
     private boolean hasToken;
     private Token token;
 
-    public Component(int componentId, String[] ipAddresses, boolean hasToken, int processesAmount) {
+    public Component(int componentId, int[] otherComponentIds, boolean hasToken, int processesAmount) {
         super();
         this.componentId = componentId;
-        this.ipAddresses = ipAddresses;
+        this.otherComponentIds = otherComponentIds;
         this.hasToken = hasToken;
         this.token = new Token(processesAmount);
     }

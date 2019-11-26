@@ -10,15 +10,14 @@ public class DA_SuzukiKazami_main {
         try {
             java.rmi.registry.LocateRegistry.createRegistry((1099));
 
-            // TODO: create unique IP-Addresses for every component
-            String[] ipAddresses = new String[processesAmount];
+            int[] otherComponentIds = new int[processesAmount];
 
 
             for (int i = 0; i < processesAmount; i++) {
                 if (i == 0) {
-                    Component c = new Component(i, ipAddresses, true, processesAmount);
+                    Component c = new Component(i, otherComponentIds, true, processesAmount);
                 } else {
-                    Component c = new Component(i, ipAddresses, false, processesAmount);
+                    Component c = new Component(i, otherComponentIds, false, processesAmount);
                 }
 
             }
