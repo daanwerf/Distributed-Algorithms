@@ -5,15 +5,16 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 
-public class Component implements Component_RMI {
+public class Component extends UnicastRemoteObject implements Component_RMI {
 
     private int componentId;
     private int[] otherComponentIds;
     private boolean hasToken;
     private Token token;
 
-    public Component(int componentId, int[] otherComponentIds, boolean hasToken, int processesAmount) {
+    public Component(int componentId, int[] otherComponentIds, boolean hasToken, int processesAmount) throws RemoteException {
         super();
         this.componentId = componentId;
         this.otherComponentIds = otherComponentIds;
