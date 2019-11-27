@@ -14,7 +14,7 @@ public class Process implements Runnable {
     public void run() {
         while (true) {
             try {
-                Thread.sleep((int) (Math.random() * 2500));
+                Thread.sleep((int) (Math.random() * 5000));
                 component.broadcastMessage();
             } catch (InterruptedException | RemoteException | NotBoundException | MalformedURLException e) {
                 e.printStackTrace();

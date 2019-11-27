@@ -15,6 +15,7 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
     private Token token;
     private int processesAmount;
     private int[] RN;
+    private boolean inCriticalSection;
 
     public Component(int componentId, int[] otherComponentIds, boolean hasToken, int processesAmount) throws RemoteException {
         super();
@@ -24,9 +25,9 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         this.token = new Token(processesAmount);
         this.processesAmount = processesAmount;
         this.RN = new int[processesAmount];
+        this.inCriticalSection = false;
 
         // Bind the Component to the registry
-        // TODO: Fix naming, doesn't work like this
         try {
             Registry registry = LocateRegistry.getRegistry();
             registry.bind("c" + componentId, this);
@@ -36,11 +37,21 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
     }
 
     public void enterCriticalSection() {
-        System.out.println("Component " + componentId + " has entered critical section");
+        try {
+            System.out.println("Component " + componentId + " has entered critical section");
+            inCriticalSection = true;
+            Thread.sleep((int) (Math.random() * 10000));
+            System.out.println("Component " + componentId + " has left critical section");
+            inCriticalSection = false;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void receiveToken(Token token) {
+        System.out.println("Component " + componentId + " has received the token");
+        hasToken = true;
         enterCriticalSection();
         token.updateLN(componentId, RN[componentId]);
 
@@ -63,31 +74,31 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
     public void sendToken(int receiverId) {
         try {
             Component_RMI receiver = (Component_RMI) Naming.lookup(makeName(receiverId));
-            receiver.receiveToken(this.token);
+            receiver.receiveToken(token);
             this.hasToken = false;
+            System.out.println("Component " + componentId + " sent token to " + Integer.toString(receiverId));
         } catch (NotBoundException | MalformedURLException | RemoteException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void receiveMessage(int senderId, int sequenceNumber) {
+    public synchronized void receiveMessage(int senderId, int sequenceNumber) {
         this.RN[senderId] = Integer.max(RN[senderId], sequenceNumber);
 
-        System.out.println("Own sequenceNumber: " + RN[senderId] + ". sender sequenceNumber: " + token.getFromLN(senderId));
+        //System.out.println("Own sequenceNumber: " + RN[senderId] + ". sender sequenceNumber: " + token.getFromLN(senderId));
 
-        if (hasToken && RN[senderId] == token.getFromLN(senderId) + 1) {
-            sendToken(senderId);
-            System.out.println("Component " + componentId + " sent token to " + Integer.toString(senderId));
-        }
         System.out.println("Component" + componentId + " has received a message from " + senderId);
+        if (hasToken && !inCriticalSection && RN[senderId] == token.getFromLN(senderId) + 1) {
+            sendToken(senderId);
+        }
     }
 
     @Override
     public void broadcastMessage() throws RemoteException, NotBoundException, MalformedURLException {
         this.RN[componentId]++;
 
-        System.out.println("Component " + componentId + " will broadcast a request");
+        System.out.println("Component " + componentId + " hasToken is " + hasToken + " and will broadcast a request");
         for (int i = 0; i < processesAmount; i++) {
             Component_RMI receiver =  (Component_RMI) Naming.lookup(makeName(i));
             receiver.receiveMessage(componentId, RN[componentId]);

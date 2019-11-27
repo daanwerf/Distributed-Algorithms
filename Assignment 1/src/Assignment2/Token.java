@@ -1,14 +1,18 @@
 package Assignment2;
 
+import java.io.Serializable;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Queue;
 
-public class Token {
+public class Token extends UnicastRemoteObject {
     private int[] LN;
     private Queue<Integer> queue;
 
-    public Token(int components) {
+    public Token(int components) throws RemoteException {
+        super();
         this.LN = new int[components];
         this.queue = new ArrayDeque<>(components);
     }
