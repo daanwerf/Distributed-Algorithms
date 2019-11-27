@@ -19,8 +19,6 @@ public class DA_SuzukiKazami_main {
                     threads[i].start();
             }
 
-
-
         } catch (RemoteException e) {
             e.printStackTrace();
         }

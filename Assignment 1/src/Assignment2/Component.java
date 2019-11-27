@@ -63,7 +63,7 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
                 queue.add(j);
             }
         }
-        System.out.println("token queue: " + queue);
+        System.out.println("Current queue in token: " + queue);
         if (!queue.isEmpty()) {
             int nextComponentInLineId = queue.poll();
             sendToken(nextComponentInLineId);
