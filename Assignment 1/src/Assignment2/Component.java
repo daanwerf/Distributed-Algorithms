@@ -5,6 +5,7 @@ import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Queue;
 
 public class Component extends UnicastRemoteObject implements Component_RMI {
 
@@ -34,25 +35,50 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         }
     }
 
+    public void enterCriticalSection() {
+        System.out.println("Component " + componentId + " has entered critical section");
+    }
+
     @Override
     public void receiveToken(Token token) {
+        enterCriticalSection();
+        token.updateLN(componentId, RN[componentId]);
 
+        Queue<Integer> queue = token.getQueue();
+        for(int j = 0; j < processesAmount; j++) {
+            if (!queue.contains(j) && RN[j] == token.getFromLN(j) + 1) {
+                token.addComponentToQueue(j);
+            }
+        }
+        queue = token.getQueue();
+        if (!queue.isEmpty()) {
+            int nextComponentInLineId = queue.poll();
+            sendToken(nextComponentInLineId);
+        } else {
+            // Keep the token; do nothing
+        }
     }
 
     @Override
     public void sendToken(int receiverId) {
-
+        try {
+            Component_RMI receiver = (Component_RMI) Naming.lookup(makeName(receiverId));
+            receiver.receiveToken(this.token);
+            this.hasToken = false;
+        } catch (NotBoundException | MalformedURLException | RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void receiveMessage(int senderId, int sequenceNumber) {
         this.RN[senderId] = Integer.max(RN[senderId], sequenceNumber);
 
-        System.out.println("Own sequenceNumber: " + RN[senderId] + ". sender sequenceNumber: " + token.getSequenceNumber(senderId));
+        System.out.println("Own sequenceNumber: " + RN[senderId] + ". sender sequenceNumber: " + token.getFromLN(senderId));
 
-        if (hasToken && RN[senderId] == token.getSequenceNumber(senderId) + 1) {
+        if (hasToken && RN[senderId] == token.getFromLN(senderId) + 1) {
             sendToken(senderId);
-            System.out.println("Sent token to " + Integer.toString(senderId));
+            System.out.println("Component " + componentId + " sent token to " + Integer.toString(senderId));
         }
         System.out.println("Component" + componentId + " has received a message from " + senderId);
     }
