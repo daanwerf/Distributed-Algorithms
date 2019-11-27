@@ -10,17 +10,15 @@ import java.util.Queue;
 public class Component extends UnicastRemoteObject implements Component_RMI {
 
     private int componentId;
-    private int[] otherComponentIds;
     private boolean hasToken;
     private Token token;
     private int processesAmount;
     private int[] RN;
     private boolean inCriticalSection;
 
-    public Component(int componentId, int[] otherComponentIds, boolean hasToken, int processesAmount) throws RemoteException {
+    public Component(int componentId, boolean hasToken, int processesAmount) throws RemoteException {
         super();
         this.componentId = componentId;
-        this.otherComponentIds = otherComponentIds;
         this.hasToken = hasToken;
         this.token = new Token(processesAmount);
         this.processesAmount = processesAmount;
