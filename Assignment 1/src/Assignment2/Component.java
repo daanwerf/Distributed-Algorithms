@@ -63,6 +63,7 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
                 queue.add(j);
             }
         }
+        System.out.println("token queue: " + queue);
         if (!queue.isEmpty()) {
             int nextComponentInLineId = queue.poll();
             sendToken(nextComponentInLineId);
@@ -75,19 +76,17 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
     public void sendToken(int receiverId) {
         try {
             Component_RMI receiver = (Component_RMI) Naming.lookup(makeName(receiverId));
-            receiver.receiveToken(LN, queue);
             this.hasToken = false;
-            System.out.println("Component " + componentId + " sent token to " + Integer.toString(receiverId));
+            System.out.println("Component " + componentId + " sent token to component " + Integer.toString(receiverId));
+            receiver.receiveToken(LN, queue);
         } catch (NotBoundException | MalformedURLException | RemoteException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public synchronized void receiveMessage(int senderId, int sequenceNumber) {
+    public void receiveMessage(int senderId, int sequenceNumber) {
         this.RN[senderId] = Integer.max(RN[senderId], sequenceNumber);
-
-        //System.out.println("Own sequenceNumber: " + RN[senderId] + ". sender sequenceNumber: " + token.getFromLN(senderId));
 
         System.out.println("Component" + componentId + " has received a message from " + senderId);
         if (hasToken && !inCriticalSection && RN[senderId] == LN[senderId] + 1) {
