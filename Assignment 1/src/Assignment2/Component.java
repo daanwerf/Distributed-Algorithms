@@ -13,7 +13,7 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
     private boolean hasToken;
     private Token token;
     private int processesAmount;
-    private int[] componentSequenceNumberList;
+    private int[] RN;
 
     public Component(int componentId, int[] otherComponentIds, boolean hasToken, int processesAmount) throws RemoteException {
         super();
@@ -22,7 +22,7 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         this.hasToken = hasToken;
         this.token = new Token(processesAmount);
         this.processesAmount = processesAmount;
-        this.componentSequenceNumberList = new int[processesAmount];
+        this.RN = new int[processesAmount];
 
         // Bind the Component to the registry
         // TODO: Fix naming, doesn't work like this
@@ -46,9 +46,11 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
 
     @Override
     public void receiveMessage(int senderId, int sequenceNumber) {
-        this.componentSequenceNumberList[senderId] = Integer.max(componentSequenceNumberList[senderId], sequenceNumber);
+        this.RN[senderId] = Integer.max(RN[senderId], sequenceNumber);
 
-        if (hasToken && componentSequenceNumberList[senderId] == token.getSequenceNumber(senderId)) {
+        System.out.println("Own sequenceNumber: " + RN[senderId] + ". sender sequenceNumber: " + token.getSequenceNumber(senderId));
+
+        if (hasToken && RN[senderId] == token.getSequenceNumber(senderId) + 1) {
             sendToken(senderId);
             System.out.println("Sent token to " + Integer.toString(senderId));
         }
@@ -57,12 +59,12 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
 
     @Override
     public void broadcastMessage() throws RemoteException, NotBoundException, MalformedURLException {
-        this.componentSequenceNumberList[componentId]++;
+        this.RN[componentId]++;
 
         System.out.println("Component " + componentId + " will broadcast a request");
-        for (int i = 1; i < processesAmount; i++) {
+        for (int i = 0; i < processesAmount; i++) {
             Component_RMI receiver =  (Component_RMI) Naming.lookup(makeName(i));
-            receiver.receiveMessage(componentId, componentSequenceNumberList[componentId]);
+            receiver.receiveMessage(componentId, RN[componentId]);
         }
     }
 
