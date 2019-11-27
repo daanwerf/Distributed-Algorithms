@@ -6,6 +6,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Queue;
 
 public class Component extends UnicastRemoteObject implements Component_RMI {
@@ -51,25 +52,26 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
 
     @Override
     public void receiveToken(int[] tokenLN, Queue<Integer> tokenQueue) {
-        LN = tokenLN;
-        queue = tokenQueue;
-        System.out.println("Component " + componentId + " has received the token");
         hasToken = true;
+        System.out.println("Component " + componentId + " has received the token");
         enterCriticalSection();
         LN[componentId] = RN[componentId];
+        this.LN = tokenLN;
+        this.queue = tokenQueue;
 
-        for(int j = 0; j < processesAmount; j++) {
-            if (!queue.contains(j) && RN[j] == LN[j] + 1) {
-                queue.add(j);
-            }
-        }
-        System.out.println("Current queue in token: " + queue);
-        if (!queue.isEmpty()) {
-            int nextComponentInLineId = queue.poll();
-            sendToken(nextComponentInLineId);
-        } else {
-            // Keep the token; do nothing
-        }
+        // TODO: Fix the queue (probably not needed for deadline, but would be fun to have)
+//        for(int j = 0; j < processesAmount; j++) {
+//            if (!queue.contains(j) && RN[j] > LN[j]) {
+//                queue.add(j);
+//            }
+//        }
+//        System.out.println("Current token queue: " + queue);
+//        if (!queue.isEmpty()) {
+//            int nextComponentInLineId = queue.poll();
+//            sendToken(nextComponentInLineId);
+//        } else {
+//            // Keep the token; do nothing
+//        }
     }
 
     @Override
@@ -77,7 +79,7 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         try {
             Component_RMI receiver = (Component_RMI) Naming.lookup(makeName(receiverId));
             this.hasToken = false;
-            System.out.println("Component " + componentId + " sent token to component " + Integer.toString(receiverId));
+            System.out.println("Component " + componentId + " sends the token to component " + Integer.toString(receiverId));
             receiver.receiveToken(LN, queue);
         } catch (NotBoundException | MalformedURLException | RemoteException e) {
             e.printStackTrace();
@@ -88,8 +90,8 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
     public void receiveMessage(int senderId, int sequenceNumber) {
         this.RN[senderId] = Integer.max(RN[senderId], sequenceNumber);
 
-        System.out.println("Component" + componentId + " has received a message from " + senderId);
-        if (hasToken && !inCriticalSection && RN[senderId] == LN[senderId] + 1) {
+        // System.out.println("Component" + componentId + " has received a message from " + senderId);
+        if (hasToken && !inCriticalSection && RN[senderId] > LN[senderId]) {
             sendToken(senderId);
         }
     }
@@ -98,7 +100,7 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
     public void broadcastMessage() throws RemoteException, NotBoundException, MalformedURLException {
         if (!hasToken && !inCriticalSection) {
             this.RN[componentId]++;
-            System.out.println("Component " + componentId + " wants the token and will broadcast a request");
+            System.out.println("Component " + componentId + " broadcasts a request");
             for (int i = 0; i < processesAmount; i++) {
                 Component_RMI receiver =  (Component_RMI) Naming.lookup(makeName(i));
                 receiver.receiveMessage(componentId, RN[componentId]);
