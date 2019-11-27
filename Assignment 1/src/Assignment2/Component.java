@@ -28,7 +28,7 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         // TODO: Fix naming, doesn't work like this
         try {
             Registry registry = LocateRegistry.getRegistry();
-            registry.bind(Integer.toString(componentId), this);
+            registry.bind("c" + componentId, this);
         } catch (RemoteException | AlreadyBoundException e) {
             e.printStackTrace();
         }
@@ -52,16 +52,16 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
             sendToken(senderId);
             System.out.println("Sent token to " + Integer.toString(senderId));
         }
+        System.out.println("Component" + componentId + " has received a message from " + senderId);
     }
 
     @Override
     public void broadcastMessage() throws RemoteException, NotBoundException, MalformedURLException {
         this.componentSequenceNumberList[componentId]++;
 
-        for(int i = 0; i < processesAmount; i++) {
-            // TODO: Fix naming, doesn't work like this
-            Component_RMI receiver =  (Component_RMI) Naming.lookup(Integer.toString(i));
-            System.out.println(receiver.toString());
+        System.out.println("Component " + componentId + " will broadcast a request");
+        for (int i = 1; i < processesAmount; i++) {
+            Component_RMI receiver =  (Component_RMI) Naming.lookup(makeName(i));
             receiver.receiveMessage(componentId, componentSequenceNumberList[componentId]);
         }
     }
@@ -69,5 +69,10 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
     @Override
     public String toString() {
         return "componentId " + componentId + " hasToken: " + hasToken;
+    }
+
+
+    public String makeName(int id) {
+        return "//localhost:1099/c" + Integer.toString(id);
     }
 }

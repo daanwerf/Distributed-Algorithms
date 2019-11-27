@@ -10,7 +10,7 @@ public class DA_SuzukiKazami_main {
 
         try {
             // Create the registry
-            java.rmi.registry.LocateRegistry.createRegistry((1099));
+            java.rmi.registry.LocateRegistry.createRegistry(1099);
 
             // Create array with all the component ids, 0 to processesAmount
             int[] otherComponentIds = new int[processesAmount];
