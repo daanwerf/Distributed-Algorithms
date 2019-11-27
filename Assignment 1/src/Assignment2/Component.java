@@ -55,8 +55,9 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         hasToken = true;
         System.out.println("Component " + componentId + " has received the token");
         enterCriticalSection();
-        LN[componentId] = RN[componentId];
+        tokenLN[componentId] = RN[componentId];
         this.LN = tokenLN;
+        System.out.println("Token: " + Arrays.toString(LN) + ", Local: " + Arrays.toString(RN));
         this.queue = tokenQueue;
 
         // TODO: Fix the queue (probably not needed for deadline, but would be fun to have)
