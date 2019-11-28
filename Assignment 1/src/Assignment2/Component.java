@@ -18,6 +18,7 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
     private int[] LN;
     private Queue<Integer> queue;
     private boolean inCriticalSection;
+    private boolean useQueue;
 
     public Component(int componentId, boolean hasToken, int processesAmount) throws RemoteException {
         super();
@@ -28,6 +29,7 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         this.processesAmount = processesAmount;
         this.RN = new int[processesAmount];
         this.inCriticalSection = false;
+        this.useQueue = true;
 
         // Bind the Component to the registry
         try {
@@ -60,19 +62,21 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         System.out.println("Token: " + Arrays.toString(LN) + ", Local: " + Arrays.toString(RN));
         this.queue = tokenQueue;
 
-        // TODO: Fix the queue (probably not needed for deadline, but would be fun to have)
-//        for(int j = 0; j < processesAmount; j++) {
-//            if (!queue.contains(j) && RN[j] > LN[j]) {
-//                queue.add(j);
-//            }
-//        }
-//        System.out.println("Current token queue: " + queue);
-//        if (!queue.isEmpty()) {
-//            int nextComponentInLineId = queue.poll();
-//            sendToken(nextComponentInLineId);
-//        } else {
-//            // Keep the token; do nothing
-//        }
+        if (useQueue) {
+            for(int j = 0; j < processesAmount; j++) {
+                if (!queue.contains(j) && RN[j] > LN[j]) {
+                    queue.add(j);
+                }
+            }
+            useQueue = false;
+        }
+
+        System.out.println("Current token queue: " + queue);
+        if (!queue.isEmpty()) {
+            sendToken(queue.poll());
+        } else {
+            useQueue = true;
+        }
     }
 
     @Override
@@ -99,15 +103,12 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
 
     @Override
     public void broadcastMessage() throws RemoteException, NotBoundException, MalformedURLException {
-        if (!hasToken && !inCriticalSection) {
             this.RN[componentId]++;
             System.out.println("Component " + componentId + " broadcasts a request");
             for (int i = 0; i < processesAmount; i++) {
                 Component_RMI receiver =  (Component_RMI) Naming.lookup(makeName(i));
                 receiver.receiveMessage(componentId, RN[componentId]);
             }
-        }
-
     }
 
     @Override
