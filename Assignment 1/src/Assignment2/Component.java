@@ -66,14 +66,14 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         this.queue = tokenQueue;
         System.out.println("Token: " + Arrays.toString(LN) + ", Local: " + Arrays.toString(RN));
 
-        if (fillQueue) {
+//        if (fillQueue) {
             for(int j = 0; j < processesAmount; j++) {
                 if (!queue.contains(j) && RN[j] > LN[j]) {
                     queue.add(j);
                 }
             }
-            fillQueue = false;
-        }
+//            fillQueue = false;
+//        }
 
         System.out.println("Current token queue: " + queue);
         if (!queue.isEmpty()) {

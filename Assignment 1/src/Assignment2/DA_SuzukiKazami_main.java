@@ -5,7 +5,7 @@ import java.rmi.RemoteException;
 public class DA_SuzukiKazami_main {
     public static void main(String args[]) {
         // TODO: change back to args[0] when done
-        int processesAmount = Integer.parseInt("10");
+        int processesAmount = Integer.parseInt("5");
         Thread[] threads = new Thread[processesAmount];
 
         try {
