@@ -1,4 +1,7 @@
-public class Buffer {
+import java.io.Serializable;
+import java.util.Arrays;
+
+public class Buffer implements Serializable {
     private int[] timestamp;
     private int id;
 
@@ -36,4 +39,13 @@ public class Buffer {
     public int getId() {
         return id;
     }
+
+    @Override
+    public String toString() {
+        return "Buffer{" +
+                "timestamp=" + Arrays.toString(timestamp) +
+                ", id=" + id +
+                '}';
+    }
+
 }

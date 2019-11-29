@@ -7,6 +7,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class SES extends UnicastRemoteObject implements SES_RMI{
     private int[] processors;
@@ -20,10 +21,10 @@ public class SES extends UnicastRemoteObject implements SES_RMI{
         this.current_processor = current_processor;
         messageBuffer = new ArrayList<Message>();
         localBuffer = new ArrayList<Buffer>();
-
+        //System.err.println(current_processor);
         try{
             Registry registry = LocateRegistry.getRegistry();
-            registry.bind("SES-"+current_processor, this);
+            registry.rebind("SES-"+current_processor, this);
             System.err.println("SES-"+current_processor+" running");
         } catch (Exception e) {
         System.err.println("Server exception: " + e.toString());
@@ -41,9 +42,20 @@ public class SES extends UnicastRemoteObject implements SES_RMI{
 
     public void send(Message message) throws RemoteException, NotBoundException, MalformedURLException {
         int destination = message.getProcessorid();
+
         SES_RMI stub = (SES_RMI) Naming.lookup("SES-"+destination);
-        processors[current_processor] = processors[current_processor]++;
+//        System.err.println(current_processor);
+        System.err.println(message.getMessage() + " has been sent to "+ message.getProcessorid());
+        processors[current_processor]++;
+        message.setTimestamp(processors);
+//        System.err.println(Arrays.toString(message.getTimestamp()));
+        try {
+            Thread.sleep(message.getDelay());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         stub.receive(message);
+//        System.err.println(message.getProcessorid()+ " has recieved the message");
         boolean exist = false;
         for(Buffer i: localBuffer){
             if(i.getId()==destination){
@@ -53,20 +65,33 @@ public class SES extends UnicastRemoteObject implements SES_RMI{
         }
 
         if(!exist){
-            Buffer firstInteraction =new Buffer(destination, processors.length);
+            Buffer firstInteraction =new Buffer(processors.length,destination);
             firstInteraction.setTimestamp(processors);
             localBuffer.add(firstInteraction);
         }
+//        System.err.println(current_processor + " local buffer:" + localBuffer.toString());
     }
 
     @Override
     public void receive(Message message) throws RemoteException {
+        System.err.println(message.toString());
+        System.err.println("Timestamp: " + current_processor +" " +Arrays.toString(processors));
+
         boolean delivered = false;
-        for(Buffer i: message.getBuffers()){
-            if((i.getId()==current_processor)&&(i.compareTimestamp(processors))){
-                deliver(message);
-                deliverMessageBuffers();
-                delivered=true;
+        if(message.getBuffers().isEmpty()){
+            System.err.println("Message from " + message.getMessage()+" has been delivered");
+            deliver(message);
+            deliverMessageBuffers();
+            delivered=true;
+        }
+        else {
+            for (Buffer i : message.getBuffers()) {
+                if ((i.getId() == current_processor) && (i.compareTimestamp(processors))) {
+                    System.err.println("Message from " + message.getMessage()+" has been delivered");
+                    deliver(message);
+                    deliverMessageBuffers();
+                    delivered = true;
+                }
             }
         }
         if(!delivered){
@@ -76,11 +101,11 @@ public class SES extends UnicastRemoteObject implements SES_RMI{
 
 
     public void deliver(Message message){
-        System.out.println("Delivered: "+message.getMessage());
+//        System.out.println("Delivered: "+message.getMessage());
         for(Buffer i: message.getBuffers()){
             for(Buffer j: localBuffer){
                 if(i.getId()==j.getId()){
-                    int[] newVector = i.max(j.getTimestamp());
+                    int[] newVector = i.max(message.getTimestamp());
                     Buffer updatedBuffer = new Buffer(i.getId(), j.getTimestamp().length);
                     updatedBuffer.setTimestamp(newVector);
                     localBuffer.add(updatedBuffer);
@@ -89,6 +114,10 @@ public class SES extends UnicastRemoteObject implements SES_RMI{
                 }
             }
         }
+        Buffer holder = new Buffer(processors.length, 0);
+        holder.setTimestamp(message.getTimestamp());
+        processors = holder.max(processors);
+//        System.out.println(current_processor + " local buffer:" + localBuffer.toString());
     }
 
     private void deliverMessageBuffers(){

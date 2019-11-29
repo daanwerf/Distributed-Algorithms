@@ -13,9 +13,10 @@ public class SES_thread implements Runnable {
     public void run() {
         for(Message i: messages){
             try{
+                Thread.sleep(1000);
                 processor.send(i);
             } catch(Exception e){
-                System.err.println(processor.getCurrent_processor()+ "Failed");
+                System.err.println("Error Thread:"+ e.toString());
             }
         }
     }
