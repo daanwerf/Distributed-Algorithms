@@ -11,6 +11,10 @@ public class Process implements Runnable {
         this.component = component;
     }
 
+    /**
+     * Simulate the component broadcasting by sleeping for anywhere between 1 to 10 seconds and then broadcasting
+     * a request.
+     */
     public void run() {
         while (true) {
             try {

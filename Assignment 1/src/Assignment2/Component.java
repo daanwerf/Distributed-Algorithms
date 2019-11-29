@@ -18,7 +18,7 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
     private int[] LN;
     private Queue<Integer> queue;
     private boolean inCriticalSection;
-    private boolean useQueue;
+    private boolean fillQueue;
 
     public Component(int componentId, boolean hasToken, int processesAmount) throws RemoteException {
         super();
@@ -29,7 +29,7 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         this.processesAmount = processesAmount;
         this.RN = new int[processesAmount];
         this.inCriticalSection = false;
-        this.useQueue = true;
+        this.fillQueue = true;
 
         // Bind the Component to the registry
         try {
@@ -40,7 +40,11 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         }
     }
 
-    public void enterCriticalSection() {
+    /**
+     * Simulate the component entering the critical section by letting the component sleep for anywhere between 1
+     * to 10 seconds.
+     */
+    private void enterCriticalSection() {
         try {
             System.out.println("Component " + componentId + " has entered critical section");
             inCriticalSection = true;
@@ -59,23 +63,23 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         enterCriticalSection();
         tokenLN[componentId] = RN[componentId];
         this.LN = tokenLN;
-        System.out.println("Token: " + Arrays.toString(LN) + ", Local: " + Arrays.toString(RN));
         this.queue = tokenQueue;
+        System.out.println("Token: " + Arrays.toString(LN) + ", Local: " + Arrays.toString(RN));
 
-        if (useQueue) {
+        if (fillQueue) {
             for(int j = 0; j < processesAmount; j++) {
                 if (!queue.contains(j) && RN[j] > LN[j]) {
                     queue.add(j);
                 }
             }
-            useQueue = false;
+            fillQueue = false;
         }
 
         System.out.println("Current token queue: " + queue);
         if (!queue.isEmpty()) {
             sendToken(queue.poll());
         } else {
-            useQueue = true;
+            fillQueue = true;
         }
     }
 
@@ -95,7 +99,6 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
     public void receiveMessage(int senderId, int sequenceNumber) {
         this.RN[senderId] = Integer.max(RN[senderId], sequenceNumber);
 
-        // System.out.println("Component" + componentId + " has received a message from " + senderId);
         if (hasToken && !inCriticalSection && RN[senderId] > LN[senderId]) {
             sendToken(senderId);
         }
@@ -116,8 +119,12 @@ public class Component extends UnicastRemoteObject implements Component_RMI {
         return "componentId " + componentId + " hasToken: " + hasToken;
     }
 
-
-    public String makeName(int id) {
+    /**
+     * Use the name of the component to construct the URL at which the component can be reached.
+     * @param id Id of the component.
+     * @return URL belonging to the component in question.
+     */
+    private String makeName(int id) {
         return "//localhost:1099/c" + Integer.toString(id);
     }
 }
